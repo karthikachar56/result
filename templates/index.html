@@ -646,7 +646,7 @@
         }
         renderResult(data);
       } catch (e) {
-        document.getElementById("errorMsg").textContent = "Server error. Make sure the backend is running.";
+        document.getElementById("errorMsg").textContent = "Could not connect to the server. Please try again shortly.";
         hide("spinnerWrap");
         show("errorCard");
       }
