@@ -10,13 +10,13 @@
     *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
 
     :root {
-      --accent:  #6366f1;
-      --green:   #059669;
+      --accent:  #2563eb;
+      --green:   #16a34a;
       --red:     #dc2626;
-      --text:    #1e293b;
+      --text:    #0f172a;
       --muted:   #64748b;
       --border:  #e2e8f0;
-      --bg:      #f1f5f9;
+      --bg:      #f8fafc;
       --surface: #ffffff;
     }
 
@@ -34,9 +34,10 @@
       margin: 60px auto;
       background: var(--surface);
       border-radius: 16px;
-      box-shadow: 0 8px 32px rgba(0,0,0,0.08);
+      box-shadow: 0 8px 32px rgba(15,23,42,0.05);
       padding: 40px;
       text-align: center;
+      border: 1px solid var(--border);
     }
 
     .lookup-card .icon { font-size: 52px; margin-bottom: 16px; }
@@ -72,11 +73,11 @@
 
     .lookup-input-wrap input:focus {
       border-color: var(--accent);
-      box-shadow: 0 0 0 3px rgba(99,102,241,0.15);
+      box-shadow: 0 0 0 3px rgba(37,99,235,0.15);
     }
 
     .btn-lookup {
-      background: linear-gradient(135deg, var(--accent), #7c3aed);
+      background: linear-gradient(135deg, var(--accent), #1d4ed8);
       color: white;
       border: none;
       border-radius: 10px;
@@ -95,14 +96,15 @@
       margin: 0 auto;
       background: var(--surface);
       border-radius: 20px;
-      box-shadow: 0 12px 40px rgba(0,0,0,0.1);
+      box-shadow: 0 12px 40px rgba(15,23,42,0.06);
       overflow: hidden;
       display: none;
+      border: 1px solid var(--border);
     }
 
     /* Header */
     .card-header {
-      background: linear-gradient(135deg, #1e1b4b 0%, #312e81 50%, #6366f1 100%);
+      background: linear-gradient(135deg, #1e3a8a 0%, #2563eb 100%);
       padding: 36px 40px;
       display: flex;
       align-items: center;
@@ -212,7 +214,7 @@
     .progress-fill {
       height: 100%;
       border-radius: 99px;
-      background: linear-gradient(90deg, #6366f1, #8b5cf6);
+      background: linear-gradient(90deg, #2563eb, #3b82f6);
       transition: width 1s ease;
     }
 
@@ -262,8 +264,8 @@
     .sub-code {
       font-family: 'Courier New', monospace;
       font-size: 12px;
-      background: #ede9fe;
-      color: #5b21b6;
+      background: #dbeafe;
+      color: #1e40af;
       padding: 3px 8px;
       border-radius: 4px;
       font-weight: 700;
@@ -292,7 +294,7 @@
     .bar-fill {
       height: 100%;
       border-radius: 99px;
-      background: linear-gradient(90deg, #6366f1, #8b5cf6);
+      background: linear-gradient(90deg, #2563eb, #3b82f6);
     }
 
     .bar-fill.low { background: linear-gradient(90deg, #ef4444, #f97316); }
@@ -385,7 +387,7 @@
       display: inline-flex;
       align-items: center;
       gap: 6px;
-      background: linear-gradient(135deg, var(--accent), #7c3aed);
+      background: linear-gradient(135deg, var(--accent), #1d4ed8);
       color: white;
       border: none;
       border-radius: 8px;
@@ -636,7 +638,12 @@
 
       try {
         const res  = await fetch(`/api/result/${encodeURIComponent(usn)}`);
-        const data = await res.json();
+        let data;
+        try {
+          data = await res.json();
+        } catch (jsonErr) {
+          throw new Error(`Server returned status ${res.status}`);
+        }
 
         if (!res.ok || !data.success) {
           document.getElementById("errorMsg").textContent = data.message || "Record not found.";
@@ -646,7 +653,7 @@
         }
         renderResult(data);
       } catch (e) {
-        document.getElementById("errorMsg").textContent = "Could not connect to the server. Please try again shortly.";
+        document.getElementById("errorMsg").textContent = "Could not connect to the server: " + e.message;
         hide("spinnerWrap");
         show("errorCard");
       }
@@ -656,7 +663,7 @@
     function lookup() {
       const usn = document.getElementById("usnInput").value.trim().toUpperCase();
       if (!usn) { alert("Please enter a USN."); return; }
-      history.pushState({}, "", `/result?usn=${usn}`);
+      history.pushState({}, "", `/?usn=${usn}`);
       fetchResult(usn);
     }
 

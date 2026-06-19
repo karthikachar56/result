@@ -31,7 +31,7 @@ def get_students():
         _mongo_client = MongoClient(
             MONGO_URI,
             tlsAllowInvalidCertificates=True,
-            serverSelectionTimeoutMS=10000,
+            serverSelectionTimeoutMS=5000,
             maxPoolSize=1
         )
     return _mongo_client[DB_NAME]["students"]
