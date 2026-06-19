@@ -111,6 +111,31 @@ def admin_panel():
     return render_template("admin.html")
 
 
+# ── Diagnostic health check ────────────────────────────────────────────────────
+@app.route("/api/health")
+def health():
+    uri_set = bool(MONGO_URI)
+    uri_preview = (MONGO_URI[:30] + "...") if uri_set else "NOT SET"
+    try:
+        students = get_students()
+        count = students.count_documents({})
+        return jsonify({
+            "status": "ok",
+            "mongo_uri_set": uri_set,
+            "uri_preview": uri_preview,
+            "db": DB_NAME,
+            "student_count": count
+        })
+    except Exception as e:
+        return jsonify({
+            "status": "error",
+            "mongo_uri_set": uri_set,
+            "uri_preview": uri_preview,
+            "db": DB_NAME,
+            "error": str(e)[:500]
+        }), 503
+
+
 # ── API: Get All Records ───────────────────────────────────────────────────────
 @app.route("/api/records", methods=["GET"])
 @login_required
