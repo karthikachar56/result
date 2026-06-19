@@ -42,6 +42,29 @@
 
     .lookup-card .icon { font-size: 52px; margin-bottom: 16px; }
 
+    .lookup-logo {
+      height: 70px;
+      width: auto;
+      margin-bottom: 20px;
+      border-radius: 8px;
+      box-shadow: 0 4px 12px rgba(15, 23, 42, 0.08);
+    }
+
+    .header-main-info {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+    }
+
+    .company-logo {
+      height: 60px;
+      width: auto;
+      border-radius: 6px;
+      background: white;
+      padding: 4px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+
     .lookup-card h2 {
       font-size: 24px;
       font-weight: 700;
@@ -461,6 +484,11 @@
     }
 
     @media (max-width: 600px) {
+      .header-main-info {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 12px;
+      }
       .card-header {
         flex-direction: column;
         align-items: flex-start;
@@ -526,6 +554,19 @@
       margin-bottom: 20px;
     }
 
+    .result-footer {
+      padding: 20px 40px;
+      border-top: 1px solid var(--border);
+      text-align: center;
+      font-size: 13px;
+      color: var(--muted);
+    }
+    @media (max-width: 480px) {
+      .result-footer {
+        padding: 16px 12px;
+      }
+    }
+
     /* Print styles */
     @media print {
       body { background: white; padding: 0; }
@@ -540,7 +581,7 @@
   <!-- ── Lookup Form ── -->
   <div id="lookupSection">
     <div class="lookup-card">
-      <div class="icon">🎓</div>
+      <img src="/static/logo.jpg" alt="EETIRP Logo" class="lookup-logo" />
       <h2>Student Result Lookup</h2>
       <p>Enter your University Seat Number to view your semester result sheet.</p>
       <div class="lookup-input-wrap">
@@ -548,6 +589,10 @@
         <button class="btn-lookup" onclick="lookup()">View Result</button>
       </div>
     </div>
+    <!-- Global Page Footer for Lookup Page -->
+    <footer style="text-align: center; margin-top: 40px; font-size: 13px; color: var(--muted);">
+      EETIRP PVT LTD &copy; 2025 · Contact: <a href="mailto:eetirpltd@gmail.com" style="color: var(--accent); text-decoration: none; font-weight: 600;">eetirpltd@gmail.com</a>
+    </footer>
   </div>
 
   <!-- ── Loading ── -->
@@ -569,10 +614,13 @@
   <div id="resultCard">
 
     <div class="card-header">
-      <div class="header-left">
-        <div class="institute">Student Result Management System</div>
-        <h1>Semester Performance Report</h1>
-        <div class="subtitle">Official Academic Statement · Current Semester</div>
+      <div class="header-main-info">
+        <img src="/static/logo.jpg" alt="EETIRP Logo" class="company-logo" />
+        <div class="header-left">
+          <div class="institute">Student Result Management System</div>
+          <h1>Semester Performance Report</h1>
+          <div class="subtitle">Official Academic Statement · Current Semester</div>
+        </div>
       </div>
       <div class="header-right">
         <div class="grade-circle">
@@ -646,6 +694,11 @@
           <span class="status-badge" id="sBadge">—</span>
         </div>
       </div>
+    </div>
+
+    <!-- Result Footer (visible on screen and in print) -->
+    <div class="result-footer">
+      EETIRP PVT LTD &copy; 2025 · Contact: <a href="mailto:eetirpltd@gmail.com" style="color: var(--accent); text-decoration: none; font-weight: 600;">eetirpltd@gmail.com</a>
     </div>
 
     <div class="card-footer">
