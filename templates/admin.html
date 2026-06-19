@@ -535,15 +535,32 @@
       <h1>SRMS Dashboard</h1>
       <span class="nav-badge">Admin</span>
     </div>
-    <div class="nav-stats">
-      <div class="nav-stat">
-        <div class="nav-stat-value" id="statTotal">—</div>
-        <div class="nav-stat-label">Students</div>
+    <div style="display:flex;align-items:center;gap:20px">
+      <div class="nav-stats">
+        <div class="nav-stat">
+          <div class="nav-stat-value" id="statTotal">—</div>
+          <div class="nav-stat-label">Students</div>
+        </div>
+        <div class="nav-stat">
+          <div class="nav-stat-value" id="statPass">—</div>
+          <div class="nav-stat-label">Avg %</div>
+        </div>
       </div>
-      <div class="nav-stat">
-        <div class="nav-stat-value" id="statPass">—</div>
-        <div class="nav-stat-label">Avg %</div>
-      </div>
+      <a href="/logout" style="
+        background:rgba(239,68,68,0.1);
+        border:1px solid rgba(239,68,68,0.25);
+        color:#f87171;
+        padding:8px 16px;
+        border-radius:8px;
+        font-size:13px;
+        font-weight:600;
+        text-decoration:none;
+        transition:all 0.2s;
+        white-space:nowrap;
+      " onmouseover="this.style.background='rgba(239,68,68,0.2)'"
+         onmouseout="this.style.background='rgba(239,68,68,0.1)'">
+        🚪 Logout
+      </a>
     </div>
   </nav>
 

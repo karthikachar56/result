@@ -1,5 +1,6 @@
-from flask import Flask, request, jsonify, render_template
+from flask import Flask, request, jsonify, render_template, redirect, url_for, session
 from pymongo import MongoClient
+from functools import wraps
 from bson import ObjectId
 import os
 
@@ -12,14 +13,14 @@ except ImportError:
 
 app = Flask(__name__)
 
-# ── MongoDB Config ─────────────────────────────────────────────────────────────
-MONGO_URI = os.environ.get("MONGO_URI", "")
-DB_NAME   = os.environ.get("DB_NAME", "srms_db")
+# ── Config ─────────────────────────────────────────────────────────────────────
+MONGO_URI   = os.environ.get("MONGO_URI", "")
+DB_NAME     = os.environ.get("DB_NAME", "srms_db")
+ADMIN_USER  = os.environ.get("ADMIN_USER", "SRMS")
+ADMIN_PASS  = os.environ.get("ADMIN_PASS", "1234567")
+app.secret_key = os.environ.get("SECRET_KEY", "srms_fallback_secret_2025")
 
 # ── Lazy MongoDB connection (serverless-safe) ──────────────────────────────────
-# Vercel runs Flask as a serverless function — connections are reused across
-# warm invocations but recreated on cold starts. maxPoolSize=1 prevents
-# exhausting Atlas free-tier connection limits.
 _mongo_client = None
 
 def get_students():
@@ -27,17 +28,54 @@ def get_students():
     if _mongo_client is None:
         _mongo_client = MongoClient(
             MONGO_URI,
-            tlsAllowInvalidCertificates=True,   # Fix TLS on Python 3.11 / Windows
+            tlsAllowInvalidCertificates=True,
             serverSelectionTimeoutMS=10000,
-            maxPoolSize=1                        # Serverless-safe pool size
+            maxPoolSize=1
         )
     return _mongo_client[DB_NAME]["students"]
+
+
+# ── Auth Decorator ─────────────────────────────────────────────────────────────
+def login_required(f):
+    @wraps(f)
+    def decorated(*args, **kwargs):
+        if not session.get("admin_logged_in"):
+            return redirect(url_for("login_page"))
+        return f(*args, **kwargs)
+    return decorated
 
 
 # ── Helper ─────────────────────────────────────────────────────────────────────
 def serialize(doc):
     doc["_id"] = str(doc["_id"])
     return doc
+
+
+# ── Auth Routes ────────────────────────────────────────────────────────────────
+@app.route("/login", methods=["GET"])
+def login_page():
+    if session.get("admin_logged_in"):
+        return redirect(url_for("admin_panel"))
+    return render_template("login.html", error=None)
+
+
+@app.route("/login", methods=["POST"])
+def login_post():
+    username = request.form.get("username", "").strip()
+    password = request.form.get("password", "")
+
+    if username == ADMIN_USER and password == ADMIN_PASS:
+        session["admin_logged_in"] = True
+        session.permanent = False
+        return redirect(url_for("admin_panel"))
+
+    return render_template("login.html", error="Invalid username or password.")
+
+
+@app.route("/logout")
+def logout():
+    session.clear()
+    return redirect(url_for("login_page"))
 
 
 # ── Page Routes ────────────────────────────────────────────────────────────────
@@ -48,12 +86,14 @@ def result_page():
 
 
 @app.route("/admin")
+@login_required
 def admin_panel():
     return render_template("admin.html")
 
 
 # ── API: Get All Records ───────────────────────────────────────────────────────
 @app.route("/api/records", methods=["GET"])
+@login_required
 def get_records():
     students = get_students()
     all_docs = [serialize(doc) for doc in students.find()]
@@ -62,6 +102,7 @@ def get_records():
 
 # ── API: Upsert (Create or Update) Student ────────────────────────────────────
 @app.route("/api/records", methods=["POST"])
+@login_required
 def save_record():
     students = get_students()
     data  = request.get_json()
@@ -82,6 +123,7 @@ def save_record():
 
 # ── API: Delete Student ────────────────────────────────────────────────────────
 @app.route("/api/records/<usn>", methods=["DELETE"])
+@login_required
 def delete_record(usn):
     students = get_students()
     result = students.delete_one({"usn": usn.upper()})
@@ -90,7 +132,7 @@ def delete_record(usn):
     return jsonify({"success": True, "message": f"Record {usn.upper()} deleted."})
 
 
-# ── API: Get Single Student Result ────────────────────────────────────────────
+# ── API: Get Single Student Result (public) ───────────────────────────────────
 @app.route("/api/result/<usn>", methods=["GET"])
 def get_result(usn):
     students = get_students()
