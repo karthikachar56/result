@@ -1,41 +1,38 @@
-from flask import Flask, request, jsonify, render_template, abort
+from flask import Flask, request, jsonify, render_template
 from pymongo import MongoClient
-from dotenv import load_dotenv
 from bson import ObjectId
 import os
 
-load_dotenv()
+# Load .env only in local dev (Vercel uses its own env var system)
+try:
+    from dotenv import load_dotenv
+    load_dotenv()
+except ImportError:
+    pass
 
 app = Flask(__name__)
 
-# ── MongoDB Connection ─────────────────────────────────────────────────────────
-MONGO_URI = os.getenv("MONGO_URI", "mongodb+srv://achark659_db_user:1234567d@cluster0.ftbq3r1.mongodb.net/")
-DB_NAME   = os.getenv("DB_NAME", "srms_db")
+# ── MongoDB Config ─────────────────────────────────────────────────────────────
+MONGO_URI = os.environ.get("MONGO_URI", "")
+DB_NAME   = os.environ.get("DB_NAME", "srms_db")
 
-client = MongoClient(
-    MONGO_URI,
-    tlsAllowInvalidCertificates=True,   # Fix: TLS handshake error on Python 3.11 / Windows
-    serverSelectionTimeoutMS=10000
-)
-db       = client[DB_NAME]
-students = db["students"]
+# ── Lazy MongoDB connection (serverless-safe) ──────────────────────────────────
+# Vercel runs Flask as a serverless function — connections are reused across
+# warm invocations but recreated on cold starts. maxPoolSize=1 prevents
+# exhausting Atlas free-tier connection limits.
+_mongo_client = None
 
-# Seed one default record if collection is empty
-try:
-    if students.count_documents({}) == 0:
-        students.insert_one({
-            "usn": "1SP25CS001",
-            "name": "Karthik D",
-            "marks": {
-                "Mathematics": 88,
-                "Data Structures": 92,
-                "OOPs (Java)": 85,
-                "Computer Arch.": 79,
-                "Basic Electrical": 90
-            }
-        })
-except Exception as e:
-    print(f"[WARN] Could not seed database: {e}")
+def get_students():
+    global _mongo_client
+    if _mongo_client is None:
+        _mongo_client = MongoClient(
+            MONGO_URI,
+            tlsAllowInvalidCertificates=True,   # Fix TLS on Python 3.11 / Windows
+            serverSelectionTimeoutMS=10000,
+            maxPoolSize=1                        # Serverless-safe pool size
+        )
+    return _mongo_client[DB_NAME]["students"]
+
 
 # ── Helper ─────────────────────────────────────────────────────────────────────
 def serialize(doc):
@@ -58,6 +55,7 @@ def admin_panel():
 # ── API: Get All Records ───────────────────────────────────────────────────────
 @app.route("/api/records", methods=["GET"])
 def get_records():
+    students = get_students()
     all_docs = [serialize(doc) for doc in students.find()]
     return jsonify(all_docs)
 
@@ -65,6 +63,7 @@ def get_records():
 # ── API: Upsert (Create or Update) Student ────────────────────────────────────
 @app.route("/api/records", methods=["POST"])
 def save_record():
+    students = get_students()
     data  = request.get_json()
     usn   = data.get("usn", "").strip().upper()
     name  = data.get("name", "").strip()
@@ -84,6 +83,7 @@ def save_record():
 # ── API: Delete Student ────────────────────────────────────────────────────────
 @app.route("/api/records/<usn>", methods=["DELETE"])
 def delete_record(usn):
+    students = get_students()
     result = students.delete_one({"usn": usn.upper()})
     if result.deleted_count == 0:
         return jsonify({"success": False, "message": "Record not found."}), 404
@@ -93,17 +93,17 @@ def delete_record(usn):
 # ── API: Get Single Student Result ────────────────────────────────────────────
 @app.route("/api/result/<usn>", methods=["GET"])
 def get_result(usn):
+    students = get_students()
     doc = students.find_one({"usn": usn.strip().upper()})
     if not doc:
         return jsonify({"success": False, "message": "Student not found."}), 404
 
-    marks       = doc.get("marks", {})
-    total       = sum(int(v) for v in marks.values())
-    max_marks   = len(marks) * 100
-    percentage  = round((total / max_marks) * 100, 1) if max_marks > 0 else 0
-    status      = "PASS" if all(int(v) >= 35 for v in marks.values()) else "FAIL"
+    marks      = doc.get("marks", {})
+    total      = sum(int(v) for v in marks.values())
+    max_marks  = len(marks) * 100
+    percentage = round((total / max_marks) * 100, 1) if max_marks > 0 else 0
+    status     = "PASS" if all(int(v) >= 35 for v in marks.values()) else "FAIL"
 
-    # Build subject list with dummy codes
     subject_codes = ["22CSE11", "22CSE12", "22CSE13", "22CSE14", "22CSE15",
                      "22CSE16", "22CSE17", "22CSE18", "22CSE19", "22CSE20"]
     subjects_list = []
@@ -123,7 +123,6 @@ def get_result(usn):
     })
 
 
-if __name__ == '__main__':
-    # use_reloader=False prevents WinError 10038 (socket error) on Windows
-    # when Flask's debug reloader forks the process with live MongoDB connections
+# ── Local dev only ─────────────────────────────────────────────────────────────
+if __name__ == "__main__":
     app.run(debug=True, port=5000, use_reloader=False)
