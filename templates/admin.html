@@ -324,7 +324,8 @@
       background: var(--surface);
       border: 1px solid var(--border);
       border-radius: var(--radius);
-      overflow: hidden;
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
     }
 
     table {
@@ -441,6 +442,25 @@
 
     .btn-delete:hover { background: rgba(220,38,38,0.15); }
 
+    .btn-remove-sub {
+      background: rgba(239, 68, 68, 0.1);
+      border: 1px solid rgba(239, 68, 68, 0.25);
+      color: #ef4444;
+      border-radius: 6px;
+      padding: 0 14px;
+      cursor: pointer;
+      font-size: 16px;
+      align-self: stretch;
+      transition: all 0.2s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .btn-remove-sub:hover {
+      background: rgba(239, 68, 68, 0.2);
+    }
+
     /* Empty state */
     .empty-state {
       text-align: center;
@@ -524,6 +544,49 @@
       .sidebar { width: 100%; max-height: none; position: static; }
       .content { padding: 20px 16px; }
       .nav-stats { display: none; }
+    }
+
+    @media (max-width: 600px) {
+      .topnav {
+        padding: 0 16px;
+      }
+      .nav-brand h1 {
+        font-size: 16px;
+      }
+      .nav-badge {
+        padding: 2px 8px;
+        font-size: 11px;
+      }
+      .content-header {
+        flex-direction: column;
+        align-items: stretch;
+      }
+      .search-wrap input {
+        width: 100%;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .subject-row {
+        flex-wrap: wrap;
+        border: 1px solid var(--border);
+        padding: 10px;
+        border-radius: 8px;
+        background: var(--surface2);
+        margin-bottom: 8px;
+      }
+      .subject-row .sub-name {
+        flex: 1 1 100%;
+        margin-bottom: 8px;
+      }
+      .subject-row .sub-mark {
+        flex: 1;
+      }
+      .subject-row .btn-remove-sub {
+        flex: 0 0 auto;
+        padding: 0 16px;
+        height: 38px;
+      }
     }
   </style>
 </head>
@@ -668,11 +731,7 @@
       row.innerHTML = `
         <input class="sub-name" type="text" placeholder="Subject name" value="${name}" required />
         <input class="sub-mark" type="number" min="0" max="100" placeholder="Marks" value="${mark}" required />
-        <button type="button" onclick="this.parentElement.remove()"
-          style="background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.25);
-                 color:#ef4444;border-radius:6px;padding:0 10px;cursor:pointer;font-size:16px;
-                 align-self:stretch;transition:all 0.2s;"
-          title="Remove">✕</button>
+        <button type="button" class="btn-remove-sub" onclick="this.parentElement.remove()" title="Remove">✕</button>
       `;
       container.appendChild(row);
     }
