@@ -1,0 +1,854 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>SRMS — Admin Dashboard</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet"/>
+  <style>
+    /* ── Reset & Tokens ──────────────────────────────────────────────── */
+    *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+
+    :root {
+      --bg:        #0d1117;
+      --surface:   #161b22;
+      --surface2:  #1f2937;
+      --border:    rgba(255,255,255,0.07);
+      --accent:    #6366f1;
+      --accent-h:  #818cf8;
+      --green:     #10b981;
+      --red:       #ef4444;
+      --yellow:    #f59e0b;
+      --text:      #e2e8f0;
+      --text-muted:#94a3b8;
+      --radius:    12px;
+      --shadow:    0 8px 32px rgba(0,0,0,0.4);
+    }
+
+    body {
+      font-family:'Inter', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* ── Top Nav ─────────────────────────────────────────────────────── */
+    .topnav {
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      padding: 0 32px;
+      height: 64px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      backdrop-filter: blur(12px);
+    }
+
+    .nav-brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .nav-logo {
+      width: 36px; height: 36px;
+      background: linear-gradient(135deg, var(--accent), var(--accent-h));
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+    }
+
+    .nav-brand h1 {
+      font-size: 18px;
+      font-weight: 700;
+      background: linear-gradient(90deg, var(--accent-h), #c084fc);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .nav-badge {
+      background: rgba(99,102,241,0.15);
+      color: var(--accent-h);
+      border: 1px solid rgba(99,102,241,0.3);
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    .nav-stats {
+      display: flex;
+      gap: 24px;
+    }
+
+    .nav-stat {
+      text-align: center;
+    }
+
+    .nav-stat-value {
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--accent-h);
+    }
+
+    .nav-stat-label {
+      font-size: 11px;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    /* ── Main Layout ─────────────────────────────────────────────────── */
+    .main {
+      display: flex;
+      flex: 1;
+      gap: 0;
+    }
+
+    /* ── Sidebar Form ────────────────────────────────────────────────── */
+    .sidebar {
+      width: 380px;
+      min-width: 340px;
+      background: var(--surface);
+      border-right: 1px solid var(--border);
+      padding: 28px 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+      overflow-y: auto;
+      max-height: calc(100vh - 64px);
+      position: sticky;
+      top: 64px;
+    }
+
+    .sidebar-title {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .sidebar-title::after {
+      content:'';
+      flex:1;
+      height:1px;
+      background: var(--border);
+    }
+
+    /* Form Fields */
+    .field {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .field label {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+    }
+
+    .field input {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 10px 14px;
+      font-size: 14px;
+      color: var(--text);
+      font-family: 'Inter', sans-serif;
+      transition: border-color 0.2s, box-shadow 0.2s;
+      width: 100%;
+    }
+
+    .field input:focus {
+      outline: none;
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(99,102,241,0.15);
+    }
+
+    .field input::placeholder { color: var(--text-muted); }
+
+    /* Subject rows */
+    .subject-row {
+      display: flex;
+      gap: 8px;
+    }
+
+    .subject-row .sub-name { flex: 2; }
+    .subject-row .sub-mark { flex: 1; }
+
+    .subjects-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 4px;
+    }
+
+    .subjects-header label {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+    }
+
+    .btn-add-sub {
+      background: rgba(99,102,241,0.1);
+      border: 1px dashed rgba(99,102,241,0.4);
+      color: var(--accent-h);
+      padding: 4px 10px;
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .btn-add-sub:hover {
+      background: rgba(99,102,241,0.2);
+    }
+
+    /* Buttons */
+    .btn-primary {
+      background: linear-gradient(135deg, var(--accent), #7c3aed);
+      color: white;
+      border: none;
+      border-radius: var(--radius);
+      padding: 13px;
+      font-size: 15px;
+      font-weight: 700;
+      cursor: pointer;
+      width: 100%;
+      transition: transform 0.15s, box-shadow 0.15s, opacity 0.15s;
+      letter-spacing: 0.3px;
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 6px 20px rgba(99,102,241,0.4);
+    }
+
+    .btn-primary:active { transform: translateY(0); }
+
+    .btn-secondary {
+      background: var(--surface2);
+      color: var(--text-muted);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 10px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      width: 100%;
+      transition: all 0.2s;
+    }
+
+    .btn-secondary:hover {
+      color: var(--text);
+      border-color: rgba(255,255,255,0.15);
+    }
+
+    /* ── Content Area ─────────────────────────────────────────────────── */
+    .content {
+      flex: 1;
+      padding: 28px 32px;
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+      overflow-y: auto;
+    }
+
+    .content-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .content-header h2 {
+      font-size: 20px;
+      font-weight: 700;
+    }
+
+    /* Search bar */
+    .search-wrap {
+      position: relative;
+    }
+
+    .search-wrap input {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 9px 14px 9px 38px;
+      font-size: 14px;
+      color: var(--text);
+      font-family: 'Inter', sans-serif;
+      width: 260px;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+
+    .search-wrap input:focus {
+      outline: none;
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(99,102,241,0.1);
+    }
+
+    .search-icon {
+      position: absolute;
+      left: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--text-muted);
+      font-size: 14px;
+      pointer-events: none;
+    }
+
+    /* ── Table ───────────────────────────────────────────────────────── */
+    .table-wrap {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 14px;
+    }
+
+    thead {
+      background: var(--surface2);
+    }
+
+    th {
+      padding: 14px 16px;
+      text-align: left;
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    td {
+      padding: 14px 16px;
+      border-bottom: 1px solid var(--border);
+      vertical-align: middle;
+      color: var(--text);
+    }
+
+    tbody tr:last-child td { border-bottom: none; }
+
+    tbody tr {
+      transition: background 0.15s;
+    }
+
+    tbody tr:hover { background: rgba(255,255,255,0.03); }
+
+    .usn-badge {
+      background: rgba(99,102,241,0.15);
+      color: var(--accent-h);
+      border: 1px solid rgba(99,102,241,0.25);
+      padding: 4px 10px;
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 700;
+      font-family: 'Courier New', monospace;
+      letter-spacing: 0.5px;
+    }
+
+    .marks-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      padding: 3px 8px;
+      border-radius: 4px;
+      font-size: 12px;
+      color: var(--text-muted);
+      margin: 2px;
+    }
+
+    .marks-pill b { color: var(--text); }
+
+    /* Actions */
+    .actions { display: flex; gap: 8px; }
+
+    .btn-edit {
+      background: rgba(99,102,241,0.12);
+      color: var(--accent-h);
+      border: 1px solid rgba(99,102,241,0.25);
+      padding: 6px 14px;
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .btn-edit:hover {
+      background: rgba(99,102,241,0.25);
+    }
+
+    .btn-view {
+      background: rgba(16,185,129,0.1);
+      color: var(--green);
+      border: 1px solid rgba(16,185,129,0.25);
+      padding: 6px 14px;
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      transition: all 0.2s;
+    }
+
+    .btn-view:hover { background: rgba(16,185,129,0.2); }
+
+    .btn-delete {
+      background: rgba(239,68,68,0.1);
+      color: var(--red);
+      border: 1px solid rgba(239,68,68,0.25);
+      padding: 6px 14px;
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .btn-delete:hover { background: rgba(239,68,68,0.22); }
+
+    /* Empty state */
+    .empty-state {
+      text-align: center;
+      padding: 60px 20px;
+      color: var(--text-muted);
+    }
+
+    .empty-state .icon { font-size: 48px; margin-bottom: 12px; }
+    .empty-state p { font-size: 15px; }
+
+    /* ── Toast ───────────────────────────────────────────────────────── */
+    #toastContainer {
+      position: fixed;
+      top: 80px;
+      right: 24px;
+      z-index: 9999;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .toast {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 14px 18px;
+      min-width: 280px;
+      max-width: 360px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      box-shadow: var(--shadow);
+      animation: slideIn 0.3s ease forwards;
+      font-size: 14px;
+    }
+
+    .toast.success { border-left: 3px solid var(--green); }
+    .toast.error   { border-left: 3px solid var(--red); }
+    .toast.info    { border-left: 3px solid var(--accent); }
+
+    .toast-icon { font-size: 18px; flex-shrink: 0; }
+
+    @keyframes slideIn {
+      from { opacity:0; transform: translateX(40px); }
+      to   { opacity:1; transform: translateX(0); }
+    }
+
+    @keyframes fadeOut {
+      from { opacity:1; transform: translateX(0); }
+      to   { opacity:0; transform: translateX(40px); }
+    }
+
+    /* ── Loading Spinner ─────────────────────────────────────────────── */
+    .spinner {
+      width: 36px; height: 36px;
+      border: 3px solid var(--border);
+      border-top-color: var(--accent);
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+      margin: 60px auto;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ── Form edit mode indicator ────────────────────────────────────── */
+    .edit-banner {
+      background: rgba(99,102,241,0.1);
+      border: 1px solid rgba(99,102,241,0.3);
+      border-radius: 8px;
+      padding: 10px 14px;
+      font-size: 13px;
+      color: var(--accent-h);
+      display: none;
+      align-items: center;
+      gap: 8px;
+    }
+
+    /* ── Responsive ──────────────────────────────────────────────────── */
+    @media (max-width: 900px) {
+      .main { flex-direction: column; }
+      .sidebar { width: 100%; max-height: none; position: static; }
+      .content { padding: 20px 16px; }
+      .nav-stats { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Top Nav -->
+  <nav class="topnav">
+    <div class="nav-brand">
+      <div class="nav-logo">🎓</div>
+      <h1>SRMS Dashboard</h1>
+      <span class="nav-badge">Admin</span>
+    </div>
+    <div class="nav-stats">
+      <div class="nav-stat">
+        <div class="nav-stat-value" id="statTotal">—</div>
+        <div class="nav-stat-label">Students</div>
+      </div>
+      <div class="nav-stat">
+        <div class="nav-stat-value" id="statPass">—</div>
+        <div class="nav-stat-label">Avg %</div>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Main Layout -->
+  <div class="main">
+
+    <!-- ── Sidebar ── -->
+    <aside class="sidebar">
+      <div class="sidebar-title">📋 Student Record</div>
+
+      <!-- Edit mode banner -->
+      <div class="edit-banner" id="editBanner">
+        ✏️ Editing record — <strong id="editingUsn"></strong>
+      </div>
+
+      <form id="studentForm" onsubmit="handleSubmit(event)">
+
+        <div class="field">
+          <label>Student USN</label>
+          <input type="text" id="fUsn" placeholder="e.g., 1SP25CS001"
+                 style="text-transform:uppercase;" required />
+        </div>
+
+        <div class="field">
+          <label>Full Name</label>
+          <input type="text" id="fName" placeholder="Student full name" required />
+        </div>
+
+        <!-- Subjects -->
+        <div>
+          <div class="subjects-header">
+            <label>Subjects &amp; Marks</label>
+            <button type="button" class="btn-add-sub" onclick="addSubjectRow()">+ Add Subject</button>
+          </div>
+          <div id="subjectsContainer">
+            <!-- Rows injected by JS -->
+          </div>
+        </div>
+
+        <button type="submit" class="btn-primary" id="submitBtn">💾 Save Record</button>
+        <button type="button" class="btn-secondary" id="cancelBtn" onclick="resetForm()" style="display:none;">✕ Cancel Edit</button>
+
+      </form>
+    </aside>
+
+    <!-- ── Content ── -->
+    <main class="content">
+      <div class="content-header">
+        <h2>📊 Active Student Records</h2>
+        <div class="search-wrap">
+          <span class="search-icon">🔍</span>
+          <input type="text" id="searchInput" placeholder="Search USN or name…"
+                 oninput="filterTable()" />
+        </div>
+      </div>
+
+      <div class="table-wrap">
+        <table id="recordsTable">
+          <thead>
+            <tr>
+              <th>USN</th>
+              <th>Student Name</th>
+              <th>Subject Marks</th>
+              <th style="text-align:center">Actions</th>
+            </tr>
+          </thead>
+          <tbody id="tableBody">
+            <tr><td colspan="4"><div class="spinner"></div></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </main>
+
+  </div>
+
+  <!-- Toast Container -->
+  <div id="toastContainer"></div>
+
+  <script>
+    // ── Default Subjects ──────────────────────────────────────────────────────
+    const DEFAULT_SUBJECTS = [
+      { name: "Mathematics",      mark: "" },
+      { name: "Data Structures",  mark: "" },
+      { name: "OOPs (Java)",      mark: "" },
+      { name: "Computer Arch.",   mark: "" },
+      { name: "Basic Electrical", mark: "" },
+    ];
+
+    let allRecords = [];
+    let editingUsn = null;
+
+    // ── Build default subject rows on load ────────────────────────────────────
+    function buildDefaultRows(subjects = DEFAULT_SUBJECTS) {
+      const container = document.getElementById("subjectsContainer");
+      container.innerHTML = "";
+      subjects.forEach(s => addSubjectRow(s.name, s.mark));
+    }
+
+    function addSubjectRow(name = "", mark = "") {
+      const container = document.getElementById("subjectsContainer");
+      const idx = container.children.length;
+      const row = document.createElement("div");
+      row.className = "subject-row";
+      row.innerHTML = `
+        <input class="sub-name" type="text" placeholder="Subject name" value="${name}" required />
+        <input class="sub-mark" type="number" min="0" max="100" placeholder="Marks" value="${mark}" required />
+        <button type="button" onclick="this.parentElement.remove()"
+          style="background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.25);
+                 color:#ef4444;border-radius:6px;padding:0 10px;cursor:pointer;font-size:16px;
+                 align-self:stretch;transition:all 0.2s;"
+          title="Remove">✕</button>
+      `;
+      container.appendChild(row);
+    }
+
+    // ── Toast ─────────────────────────────────────────────────────────────────
+    function toast(msg, type = "info") {
+      const icons = { success: "✅", error: "❌", info: "ℹ️" };
+      const el = document.createElement("div");
+      el.className = `toast ${type}`;
+      el.innerHTML = `<span class="toast-icon">${icons[type]}</span><span>${msg}</span>`;
+      document.getElementById("toastContainer").appendChild(el);
+      setTimeout(() => {
+        el.style.animation = "fadeOut 0.3s ease forwards";
+        setTimeout(() => el.remove(), 300);
+      }, 3500);
+    }
+
+    // ── Load All Records ──────────────────────────────────────────────────────
+    async function loadRecords() {
+      try {
+        const res = await fetch("/api/records");
+        allRecords = await res.json();
+        renderTable(allRecords);
+        updateStats(allRecords);
+      } catch (e) {
+        toast("Failed to load records from server.", "error");
+        document.getElementById("tableBody").innerHTML =
+          `<tr><td colspan="4"><div class="empty-state"><div class="icon">⚠️</div><p>Could not connect to server.</p></div></td></tr>`;
+      }
+    }
+
+    // ── Update Nav Stats ──────────────────────────────────────────────────────
+    function updateStats(records) {
+      document.getElementById("statTotal").textContent = records.length;
+      if (records.length === 0) {
+        document.getElementById("statPass").textContent = "—";
+        return;
+      }
+      let totalPct = 0;
+      records.forEach(r => {
+        const vals = Object.values(r.marks || {});
+        if (vals.length) {
+          const sum = vals.reduce((a, b) => a + parseInt(b), 0);
+          totalPct += (sum / (vals.length * 100)) * 100;
+        }
+      });
+      document.getElementById("statPass").textContent =
+        (totalPct / records.length).toFixed(1) + "%";
+    }
+
+    // ── Render Table ──────────────────────────────────────────────────────────
+    function renderTable(records) {
+      const tbody = document.getElementById("tableBody");
+      if (records.length === 0) {
+        tbody.innerHTML = `
+          <tr><td colspan="4">
+            <div class="empty-state">
+              <div class="icon">📭</div>
+              <p>No student records found. Add one using the form.</p>
+            </div>
+          </td></tr>`;
+        return;
+      }
+
+      tbody.innerHTML = records.map(r => {
+        const marks = r.marks || {};
+        const pills = Object.entries(marks)
+          .map(([s, m]) => `<span class="marks-pill">${s}: <b>${m}</b></span>`)
+          .join("");
+        return `
+          <tr>
+            <td><span class="usn-badge">${r.usn}</span></td>
+            <td style="font-weight:600">${r.name}</td>
+            <td>${pills}</td>
+            <td>
+              <div class="actions" style="justify-content:center">
+                <button class="btn-edit"   onclick="editRecord('${r.usn}')">✏️ Edit</button>
+                <a      class="btn-view"   href="/?usn=${r.usn}" target="_blank">📄 Result</a>
+                <button class="btn-delete" onclick="deleteRecord('${r.usn}')">🗑 Delete</button>
+              </div>
+            </td>
+          </tr>`;
+      }).join("");
+    }
+
+    // ── Search Filter ─────────────────────────────────────────────────────────
+    function filterTable() {
+      const q = document.getElementById("searchInput").value.toLowerCase();
+      const filtered = allRecords.filter(r =>
+        r.usn.toLowerCase().includes(q) ||
+        r.name.toLowerCase().includes(q)
+      );
+      renderTable(filtered);
+    }
+
+    // ── Submit Form (Create / Update) ─────────────────────────────────────────
+    async function handleSubmit(e) {
+      e.preventDefault();
+
+      const usn  = document.getElementById("fUsn").value.trim().toUpperCase();
+      const name = document.getElementById("fName").value.trim();
+
+      const subNames  = [...document.querySelectorAll(".sub-name")].map(i => i.value.trim());
+      const subMarks  = [...document.querySelectorAll(".sub-mark")].map(i => i.value);
+
+      if (subNames.some(n => !n) || subMarks.some(m => m === "")) {
+        toast("Please fill all subject names and marks.", "error"); return;
+      }
+
+      const marks = {};
+      subNames.forEach((n, i) => marks[n] = parseInt(subMarks[i]));
+
+      const btn = document.getElementById("submitBtn");
+      btn.disabled = true;
+      btn.textContent = "Saving…";
+
+      try {
+        const res  = await fetch("/api/records", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ usn, name, marks })
+        });
+        const data = await res.json();
+        if (data.success) {
+          toast(data.message, "success");
+          resetForm();
+          await loadRecords();
+        } else {
+          toast(data.message || "Save failed.", "error");
+        }
+      } catch (err) {
+        toast("Network error. Check server.", "error");
+      } finally {
+        btn.disabled = false;
+        btn.textContent = "💾 Save Record";
+      }
+    }
+
+    // ── Edit Record ───────────────────────────────────────────────────────────
+    function editRecord(usn) {
+      const r = allRecords.find(x => x.usn === usn);
+      if (!r) return;
+
+      editingUsn = usn;
+      document.getElementById("fUsn").value  = r.usn;
+      document.getElementById("fUsn").readOnly = true;
+      document.getElementById("fName").value = r.name;
+
+      const subjects = Object.entries(r.marks || {}).map(([name, mark]) => ({ name, mark }));
+      buildDefaultRows(subjects);
+
+      document.getElementById("editBanner").style.display   = "flex";
+      document.getElementById("editingUsn").textContent     = usn;
+      document.getElementById("cancelBtn").style.display    = "block";
+      document.getElementById("submitBtn").textContent      = "✏️ Update Record";
+
+      document.querySelector(".sidebar").scrollTop = 0;
+      toast(`Editing record for ${r.name}`, "info");
+    }
+
+    // ── Delete Record ─────────────────────────────────────────────────────────
+    async function deleteRecord(usn) {
+      const r = allRecords.find(x => x.usn === usn);
+      if (!confirm(`Delete record for ${r?.name || usn} (${usn})? This is permanent.`)) return;
+
+      try {
+        const res  = await fetch(`/api/records/${usn}`, { method: "DELETE" });
+        const data = await res.json();
+        if (data.success) {
+          toast(data.message, "success");
+          await loadRecords();
+        } else {
+          toast(data.message || "Delete failed.", "error");
+        }
+      } catch {
+        toast("Network error.", "error");
+      }
+    }
+
+    // ── Reset Form ────────────────────────────────────────────────────────────
+    function resetForm() {
+      editingUsn = null;
+      document.getElementById("studentForm").reset();
+      document.getElementById("fUsn").readOnly   = false;
+      document.getElementById("editBanner").style.display  = "none";
+      document.getElementById("cancelBtn").style.display   = "none";
+      document.getElementById("submitBtn").textContent     = "💾 Save Record";
+      buildDefaultRows();
+    }
+
+    // ── Init ──────────────────────────────────────────────────────────────────
+    buildDefaultRows();
+    loadRecords();
+  </script>
+
+</body>
+</html>
