@@ -18,7 +18,7 @@ MONGO_URI   = os.environ.get("MONGO_URI", "")
 DB_NAME     = os.environ.get("DB_NAME", "srms_db")
 ADMIN_USER  = os.environ.get("ADMIN_USER", "SRMS")
 ADMIN_PASS  = os.environ.get("ADMIN_PASS", "1234567")
-app.secret_key = os.environ.get("SECRET_KEY", "srms_fallback_secret_2025")
+app.secret_key = os.environ.get("SECRET_KEY", "srms_fallback_secret_2026")
 
 # ── Lazy MongoDB connection (serverless-safe) ──────────────────────────────────
 _mongo_client = None
